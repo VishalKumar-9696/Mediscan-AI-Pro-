@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mediscan AI Pro – AI Healthcare Assistant & Emergency Blood Finder | Team The Code Burner (MPIT Gorakhpur)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            navy: {
+              950: '#030712',
+              900: '#0a0f1d',
+              850: '#0f172a',
+              800: '#1e293b',
+              700: '#334155'
+            },
+            teal: {
+              950: '#042f2e',
+              900: '#134e4a',
+              800: '#115e59',
+              700: '#0f766e',
+              600: '#0d9488',
+              500: '#14b8a6',
+              400: '#2dd4bf',
+              100: '#ccfbf1',
+              50: '#f0fdfa'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Ultra Modern Healthcare System CSS -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-teal-500 selection:text-white pb-20 md:pb-12">
+
+  <!-- Top Announcement Bar with Live ECG Line & Controls -->
+  <div class="bg-navy-950 text-slate-300 text-[11px] py-1.5 px-4 border-b border-white/10 relative overflow-hidden flex items-center justify-between z-50">
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="bg-teal-500/20 text-teal-300 font-extrabold px-2.5 py-0.5 rounded-full border border-teal-500/40 flex items-center gap-1.5 shadow-[0_0_10px_rgba(20,184,166,0.3)]">
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-ping"></span>
+        LIVE ON PORT 3000
+      </span>
+      <span class="font-medium text-slate-300">
+        Team <strong class="text-white">The Code Burner</strong> • Maharana Pratap Institute of Technology, Gorakhpur
+      </span>
+    </div>
+
+    <!-- Live ECG SVG Animation in Header -->
+    <div class="hidden lg:flex items-center gap-2 text-slate-400">
+      <span class="text-[10px] text-teal-400 font-mono font-bold tracking-wider">ECG TELEMETRY: 74 BPM STABLE</span>
+      <div class="w-24 h-4 overflow-hidden relative opacity-85">
+        <svg class="w-full h-full text-teal-400" viewBox="0 0 100 20" fill="none" stroke="currentColor">
+          <path d="M0 10 L25 10 L30 3 L35 18 L40 7 L45 13 L50 10 L75 10 L80 3 L85 18 L90 7 L95 13 L100 10" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ecg-path"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="hidden sm:flex items-center gap-3">
+      <!-- Sound FX Toggle -->
+      <button id="sound-fx-toggle-btn" class="px-2.5 py-0.5 rounded-lg bg-navy-900 border border-slate-700/80 hover:border-teal-500 text-teal-400 text-[11px] font-bold flex items-center gap-1 transition-all">
+        <span id="sound-fx-icon">🔊</span>
+        <span id="sound-fx-text">Audio FX: ON</span>
+      </button>
+
+      <span class="text-slate-600">|</span>
+      <span class="text-slate-400">Helpline: <strong class="text-white">108</strong> / <strong class="text-teal-300">104</strong></span>
+      <span class="text-slate-600">|</span>
+      <button onclick="window.openDemoModal()" class="text-teal-400 hover:text-teal-300 font-extrabold flex items-center gap-1 transition-transform hover:scale-105">
+        <span>⚡ 1-Click Evaluator Scenarios</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Sticky Glassmorphic Header -->
+  <header class="sticky top-0 z-40 glass-header text-white shadow-2xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand Logo with Glowing Medical Cross -->
+        <div class="flex items-center gap-3 cursor-pointer group" onclick="window.navigateTo('dashboard')">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-500 via-teal-600 to-emerald-400 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-teal-500/30 group-hover:scale-105 transition-all">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+          </div>
+          <div>
+            <div class="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
+              Mediscan <span class="bg-gradient-to-r from-teal-400 to-emerald-300 bg-clip-text text-transparent font-black">AI Pro</span>
+            </div>
+            <div class="text-[10px] text-slate-400 -mt-1 font-medium tracking-wide flex items-center gap-1.5">
+              <span>Healthcare Assistant & Emergency Radar</span>
+              <span class="text-teal-400 font-bold">• Gorakhpur</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role Selector & Demo Mode Bar -->
+        <div class="hidden md:flex items-center gap-3">
+          <div class="flex items-center gap-2 bg-navy-900/90 px-3.5 py-1.5 rounded-xl border border-slate-700/80 text-xs shadow-inner">
+            <span class="text-slate-400 font-medium">Active Persona:</span>
+            <select id="user-role-select" class="bg-transparent text-teal-300 font-extrabold focus:outline-none cursor-pointer">
+              <option value="Patient / Requester" class="bg-navy-900 text-white">Patient / Requester</option>
+              <option value="Donor" class="bg-navy-900 text-white">Registered Donor</option>
+              <option value="Blood Bank Staff" class="bg-navy-900 text-white">Blood Bank Staff</option>
+              <option value="Admin" class="bg-navy-900 text-white">System Admin</option>
+            </select>
+          </div>
+
+          <button id="top-demo-guide-btn" class="px-3 py-1.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 border border-teal-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm hover:scale-105">
+            <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Evaluator Testing Console
+          </button>
+        </div>
+
+        <!-- Right Side: Notifications & Emergency SOS Button -->
+        <div class="flex items-center gap-3">
+          <!-- Notification Bell -->
+          <div class="relative">
+            <button id="notif-bell-btn" class="w-10 h-10 rounded-xl bg-navy-850 hover:bg-navy-800 text-slate-300 flex items-center justify-center transition-colors border border-slate-700/60 shadow-sm relative">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+            </button>
+
+            <!-- Dropdown (Dark Cyber Glass) -->
+            <div id="notif-dropdown-panel" class="hidden absolute right-0 mt-2 w-80 glass-panel-modal rounded-2xl shadow-2xl border border-slate-700/80 z-50 text-slate-100 overflow-hidden">
+              <div class="p-3.5 bg-navy-950/80 border-b border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                  <span class="text-xs font-black text-white">Live Medical Alerts</span>
+                </div>
+                <span class="text-[10px] text-teal-400 font-bold cursor-pointer hover:underline" onclick="window.mediscanApp.renderNotificationsList()">Refresh</span>
+              </div>
+              <div id="notif-dropdown-content" class="max-h-64 overflow-y-auto divide-y divide-white/5"></div>
+            </div>
+          </div>
+
+          <!-- Emergency Crimson Pulse Button -->
+          <button id="top-emergency-sos-btn" class="btn-neon-crimson px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 animate-pulse-aura">
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            <span>🚨 SOS BLOOD DISPATCH</span>
+          </button>
+
+          <!-- Mobile Hamburger -->
+          <button id="mobile-menu-btn" class="md:hidden w-10 h-10 rounded-xl bg-navy-850 flex items-center justify-center text-slate-300 border border-slate-700/50">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs with Sleek Hover & Active Pill Indicator -->
+      <nav class="hidden md:flex items-center space-x-1.5 py-2 overflow-x-auto border-t border-white/5 text-xs font-bold">
+        <a href="#dashboard" data-nav-target="dashboard" class="px-3.5 py-1.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span>🏠</span> Dashboard
+        </a>
+        <a href="#specialists" data-nav-target="specialists" class="px-3.5 py-1.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span>🩺</span> Best Doctors & Specialists
+        </a>
+        <a href="#prescriptions" data-nav-target="prescriptions" class="px-3.5 py-1.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span>💊</span> Prescriptions & Reminders
+        </a>
+        <a href="#bloodFinder" data-nav-target="bloodFinder" class="px-3.5 py-1.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span>🩸</span> Emergency Blood Finder
+        </a>
+        <a href="#donorNetwork" data-nav-target="donorNetwork" class="px-3.5 py-1.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span>❤️</span> Blood Donor Network
+        </a>
+        <a href="#bloodBanks" data-nav-target="bloodBanks" class="px-3.5 py-1.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span>🏥</span> Blood Bank Centers
+        </a>
+        <a href="#map" data-nav-target="map" class="px-3.5 py-1.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span>🗺️</span> Interactive Map
+        </a>
+        <a href="#passport" data-nav-target="passport" class="px-3.5 py-1.5 rounded-xl transition-all text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-1.5">
+          <span>📋</span> Medical Health Passport
+        </a>
+      </nav>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu-drawer" class="hidden md:hidden bg-navy-950 border-t border-slate-800 px-4 py-4 space-y-2.5 text-xs font-bold">
+      <div class="p-3 bg-navy-900 rounded-xl mb-3 border border-slate-800">
+        <label class="text-slate-400 block text-[10px] mb-1">Select Persona Mode:</label>
+        <select onchange="db.setCurrentRole(this.value); window.location.reload();" class="w-full bg-navy-800 text-teal-300 font-bold p-2 rounded-lg text-xs">
+          <option value="Patient / Requester">Patient / Requester</option>
+          <option value="Donor">Registered Blood Donor</option>
+          <option value="Blood Bank Staff">Blood Bank Staff</option>
+          <option value="Admin">System Admin</option>
+        </select>
+      </div>
+
+      <a href="#dashboard" data-nav-target="dashboard" class="block py-2.5 px-3.5 rounded-xl text-slate-300 hover:bg-white/5">🏠 Patient Dashboard</a>
+      <a href="#specialists" data-nav-target="specialists" class="block py-2.5 px-3.5 rounded-xl text-slate-300 hover:bg-white/5">🩺 Best Doctors & Specialists</a>
+      <a href="#prescriptions" data-nav-target="prescriptions" class="block py-2.5 px-3.5 rounded-xl text-slate-300 hover:bg-white/5">💊 Prescriptions & Reminders</a>
+      <a href="#bloodFinder" data-nav-target="bloodFinder" class="block py-2.5 px-3.5 rounded-xl text-slate-300 hover:bg-white/5">🩸 Emergency Blood Finder</a>
+      <a href="#donorNetwork" data-nav-target="donorNetwork" class="block py-2.5 px-3.5 rounded-xl text-slate-300 hover:bg-white/5">❤️ Blood Donor Network</a>
+      <a href="#bloodBanks" data-nav-target="bloodBanks" class="block py-2.5 px-3.5 rounded-xl text-slate-300 hover:bg-white/5">🏥 Blood Bank Centers</a>
+      <a href="#map" data-nav-target="map" class="block py-2.5 px-3.5 rounded-xl text-slate-300 hover:bg-white/5">🗺️ Interactive Map</a>
+      <a href="#passport" data-nav-target="passport" class="block py-2.5 px-3.5 rounded-xl text-slate-300 hover:bg-white/5">📋 Medical Health Passport</a>
+
+      <button onclick="window.openDemoModal()" class="w-full py-3 px-3 mt-2 btn-neon-teal text-white rounded-xl font-bold text-center">
+        ⚡ 1-Click Evaluator Scenarios
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8" id="main-content-area">
+    <!-- Rendered dynamically by active module -->
+  </main>
+
+  <!-- Floating Quick Action Dock (Ultimate User-Friendly Speed Navigation) -->
+  <aside class="quick-dock hidden md:flex" aria-label="Quick Action Speed Navigation">
+    <button onclick="window.navigateTo('dashboard')" class="quick-dock-btn group" title="Dashboard">
+      <span class="text-sm group-hover:scale-125 transition-transform">🏠</span>
+      <span>Dashboard</span>
+    </button>
+    <button onclick="window.navigateTo('bloodFinder')" class="quick-dock-btn text-red-400 group" title="Find Blood">
+      <span class="text-sm group-hover:scale-125 transition-transform">🩸</span>
+      <span class="font-black text-red-400">Emergency SOS</span>
+    </button>
+    <button onclick="window.navigateTo('prescriptions')" class="quick-dock-btn group" title="Pills Schedule">
+      <span class="text-sm group-hover:scale-125 transition-transform">💊</span>
+      <span>Pill Timetable</span>
+    </button>
+    <button onclick="window.navigateTo('specialists')" class="quick-dock-btn group" title="Doctors">
+      <span class="text-sm group-hover:scale-125 transition-transform">🩺</span>
+      <span>Doctors</span>
+    </button>
+    <button onclick="window.navigateTo('passport')" class="quick-dock-btn group" title="Health Passport">
+      <span class="text-sm group-hover:scale-125 transition-transform">📋</span>
+      <span>Passport</span>
+    </button>
+    <div class="w-px h-5 bg-slate-700 mx-1"></div>
+    <button onclick="window.openDemoModal()" class="quick-dock-btn text-teal-400 hover:text-teal-300 group" title="Evaluator Scenarios">
+      <span class="text-sm group-hover:scale-125 transition-transform">⚡</span>
+      <span class="font-extrabold text-teal-300">Test Console</span>
+    </button>
+  </aside>
+
+  <!-- Global Footer -->
+  <footer class="bg-navy-950 text-slate-400 text-xs border-t border-white/5 py-10 mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <div class="text-sm font-extrabold text-white flex items-center gap-2">
+            <span>Mediscan AI Pro</span>
+            <span class="badge-demo text-[10px]">College Hackathon Build</span>
+          </div>
+          <p class="text-slate-400 text-[11px] mt-1">
+            Engineered with pride by <strong>Team The Code Burner</strong> • Maharana Pratap Institute of Technology (MPIT), Gorakhpur.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4 text-xs">
+          <button onclick="window.runDemoScenario('reset-database')" class="text-slate-400 hover:text-rose-400 transition-colors">
+            Reset Demo Database
+          </button>
+          <span class="text-slate-700">•</span>
+          <button onclick="window.openDemoModal()" class="text-teal-400 hover:underline font-bold">
+            Hackathon Testing Console
+          </button>
+        </div>
+      </div>
+
+      <div class="border-t border-white/5 pt-4 text-[11px] text-slate-500 flex flex-col md:flex-row items-center justify-between gap-2">
+        <p>
+          Emergency Protocol Notice: Simulated blood availability and doctor data for demonstration. Always verify compatibility with hospital laboratories.
+        </p>
+        <p class="font-mono text-teal-500">
+          Gorakhpur, Uttar Pradesh • 2026
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Global Modal Container with Cyber Glass Backdrop Blur -->
+  <div id="global-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="glass-panel-modal max-w-xl w-full max-h-[90vh] overflow-y-auto rounded-3xl border border-teal-500/30 shadow-2xl text-slate-100 animate-fade-in">
+      <div class="flex items-center justify-between p-5 border-b border-white/10 bg-navy-950/60">
+        <div class="flex items-center gap-2.5">
+          <div class="w-2.5 h-2.5 rounded-full bg-teal-400 animate-ping"></div>
+          <h3 id="global-modal-title" class="text-sm font-black text-white tracking-wide">Modal Title</h3>
+        </div>
+        <button onclick="window.closeModal()" class="text-slate-400 hover:text-white w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors">
+          ✕
+        </button>
+      </div>
+      <div id="global-modal-body" class="p-6"></div>
+      <div id="global-modal-actions" class="flex items-center justify-end gap-2.5 p-4 bg-navy-950/80 border-t border-white/10 rounded-b-3xl"></div>
+    </div>
+  </div>
+
+  <!-- Global Toast Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
+
+  <!-- Main ES Module Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
